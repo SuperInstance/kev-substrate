@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+"""
+kev-substrate CLI — kev inference + Quilt substrate recording from the shell.
+
+Usage:
+  kev-substrate --state "Customer was charged twice." \\
+                --question dept:choice:Which team:returns=Returns|shipping=Shipping|billing=Billing
+
+Or with file input:
+  kev-substrate --state @ticket.txt --question ...
+
+This wraps kev.substrate._cli() so you can use it without installing the package.
+"""
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from kev.substrate import _cli
+if __name__ == "__main__":
+    _cli()
