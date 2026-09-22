@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kev-substrate — webnative</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0a0e27, #1a1f3a);
+  color: #e0e0ff;
+  min-height: 100vh;
+  padding: 16px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+h1 {
+  font-size: 1.8em;
+  background: linear-gradient(135deg, #76ff03, #80cbc4, #b39ddb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.subtitle { color: #b0b0d0; font-size: 0.9em; margin-top: 4px; }
+.surfaces {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 0.75em;
+}
+.surface {
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(118, 255, 3, 0.3);
+  background: rgba(118, 255, 3, 0.05);
+  color: #76ff03;
+}
+.surface.active { background: rgba(118, 255, 3, 0.2); }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.panel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+.panel h2 {
+  color: #80cbc4;
+  font-size: 0.95em;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(128,203,196,0.3);
+}
+
+textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  color: #fff;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 0.9em;
+  resize: vertical;
+  min-height: 60px;
+}
+textarea:focus { outline: none; border-color: #76ff03; }
+
+select, input {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  color: #fff;
+  padding: 6px 10px;
+  font-family: inherit;
+}
+
+button {
+  background: linear-gradient(135deg, #5e72e4, #825ee4);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-top: 8px;
+}
+button:hover { transform: translateY(-1px); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.run { background: linear-gradient(135deg, #11998e, #38ef7d); color: #1a1a1a; }
+
+.answers {
+  margin-top: 12px;
+}
+.answer-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+}
+.answer-label { min-width: 80px; font-size: 0.85em; }
+.answer-bar-fill {
+  height: 8px;
+  background: linear-gradient(90deg, #76ff03, #b39ddb);
+  border-radius: 4px;
+  min-width: 2px;
+}
+.answer-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; min-width: 50px; }
+
+.cell-info {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75em;
+  color: #80cbc4;
+  background: rgba(0,0,0,0.3);
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+  padding: 8px 16px;
+  margin-top: 16px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.status-bar .indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.status-bar .on { background: #76ff03; }
+.status-bar .off { background: #f44336; }
+
+.cells-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.cell-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.cell-row:hover { background: rgba(118, 255, 3, 0.05); }
+.cell-id { color: #80cbc4; font-family: monospace; }
+.cell-source {
+  font-size: 0.7em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(118, 255, 3, 0.2);
+  color: #76ff03;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>kev-substrate</h1>
+  <p class="subtitle">Webnative surface — all four views, one cell graph</p>
+  <div class="surfaces">
+    <span class="surface active">🌐 Webnative (this page)</span>
+    <span class="surface">⌨️ CLI: <code>kev-substrate --state ...</code></span>
+    <span class="surface">🖥️ TUI: <code>python -m quilt_tui</code></span>
+    <span class="surface">🔌 HTTP: <code>/v1/systemone</code></span>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="panel">
+    <h2>📝 Ask kev</h2>
+    <textarea id="state-input" placeholder="Customer ticket text, question, or any state you want kev to reason about...">I was charged twice for the same order. Please fix this.</textarea>
+    
+    <div style="margin-top: 10px;">
+      <label>Question type:
+        <select id="question-type">
+          <option value="choice">Multiple choice</option>
+          <option value="noul">Yes / No</option>
+          <option value="score">Rating (0-2)</option>
+        </select>
+      </label>
+    </div>
+    
+    <div id="options-row" style="margin-top: 10px;">
+      <label>Options (comma-separated):
+        <input type="text" id="options" value="returns, shipping, billing" style="width: 100%; margin-top: 4px;">
+      </label>
+    </div>
+    
+    <button id="run-btn" class="run" onclick="askKev()">▶ Run kev (records to substrate)</button>
+    <span id="run-status" style="margin-left: 10px; font-size: 0.85em; color: #888;"></span>
+    
+    <div class="answers" id="answers"></div>
+    
+    <div class="cell-info" id="cell-info"></div>
+  </div>
+  
+  <div class="panel">
+    <h2>🔗 Recent Cells (live from substrate)</h2>
+    <button onclick="refreshCells()" style="font-size: 0.8em; padding: 4px 10px;">🔄 Refresh</button>
+    <div class="cells-list" id="cells-list">Loading...</div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div>
+    <span class="indicator on"></span>
+    Substrate: <span id="status-substrate">connecting...</span>
+  </div>
+  <div>
+    <span class="indicator off"></span>
+    kev (local): <span id="status-kev">checking...</span>
+  </div>
+  <div>
+    <span class="indicator on"></span>
+    Surface: Webnative
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══ Configuration ═══
+const KEV_URL = (new URLSearchParams(location.search).get('kev') || 'http://127.0.0.1:8009');
+const SUBSTRATE_URL = (new URLSearchParams(location.search).get('substrate') || 'https://quilt-distributed.casey-digennaro.workers.dev');
+
+// ═══ Substrate calls ═══
+
+async function submitToSubstrate(cellId, stateJson, prevHash, content) {
+  const resp = await fetch(`${SUBSTRATE_URL}/api/cell`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      id: cellId,
+      type: 'kev-inference',
+      state: stateJson,
+      prev_hash: prevHash,
+      content: content,
+      source: 'kev-substrate-webnative',
+    }),
+  });
+  return resp.json();
+}
+
+async function askKev() {
+  const state = document.getElementById('state-input').value.trim();
+  const qType = document.getElementById('question-type').value;
+  const optionsRaw = document.getElementById('options').value;
+  const runBtn = document.getElementById('run-btn');
+  const status = document.getElementById('run-status');
+  const answersDiv = document.getElementById('answers');
+  const cellInfoDiv = document.getElementById('cell-info');
+  
+  if (!state) {
+    status.textContent = '⚠️ State is empty';
+    return;
+  }
+  
+  runBtn.disabled = true;
+  status.textContent = 'calling kev...';
+  answersDiv.innerHTML = '';
+  cellInfoDiv.innerHTML = '';
+  
+  // Build question
+  let question;
+  if (qType === 'choice') {
+    const opts = optionsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    const criteria = {};
+    opts.forEach(o => criteria[o] = o);
+    question = {
+      id: 'classification',
+      type: 'choice',
+      instructions: 'Which option best fits?',
+      criteria,
+    };
+  } else if (qType === 'noul') {
+    question = {
+      id: 'yesno',
+      type: 'noul',
+      instructions: 'Yes or no based on the state',
+    };
+  } else {
+    const levels = optionsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    question = {
+      id: 'score',
+      type: 'score',
+      instructions: 'Rate based on the state',
+      criteria: levels.length ? levels : ['low', 'medium', 'high'],
+    };
+  }
+  
+  // Auto cell ID from state hash
+  const stateSig = state + JSON.stringify(question) + Date.now();
+  let h = 0xcbf29ce484222325;
+  for (let i = 0; i < stateSig.length; i++) {
+    h ^= stateSig.charCodeAt(i);
+    h = Math.imul(h, 0x100000001b3) & 0xffffffffffffffffn;
+  }
+  const cellId = 'kev-web-' + BigInt(h).toString(16).slice(-12);
+  
+  // Call kev (or simulate)
+  let kevResp;
+  try {
+    const r = await fetch(`${KEV_URL}/v1/systemone`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ state, questions: { [question.id]: question }, model: 'kev-latest' }),
+    });
+    if (!r.ok) throw new Error('kev HTTP ' + r.status);
+    kevResp = await r.json();
+    document.getElementById('status-kev').innerHTML = '<span style="color: #76ff03">online</span>';
+  } catch (e) {
+    // Fallback: simulate kev responses so the substrate still records
+    kevResp = simulateKev(question, state);
+    document.getElementById('status-kev').innerHTML = '<span style="color: #ff9800">simulated</span>';
+  }
+  
+  status.textContent = 'recording to substrate...';
+  
+  // Compute prev_hash from local chain
+  const prevHash = window._lastHash || '0x' + '0'.repeat(16);
+  
+  // Submit to substrate
+  const stateJson = JSON.stringify({ state, questions: { [question.id]: question }, answers: kevResp.answers, model: 'kev-latest' });
+  try {
+    const subResp = await submitToSubstrate(cellId, stateJson, prevHash, state);
+    
+    // Update local chain
+    window._lastHash = subResp.hash || ('0x' + BigInt(h).toString(16).padStart(16, '0'));
+    
+    // Render answers
+    renderAnswers(kevResp.answers, answersDiv);
+    
+    // Render cell info
+    cellInfoDiv.innerHTML = 
+      `<strong>Cell:</strong> ${subResp.cellId || cellId}<br>` +
+      `<strong>Hash:</strong> ${subResp.hash || window._lastHash}<br>` +
+      `<strong>Prev:</strong> ${prevHash}<br>` +
+      `<strong>Embedding:</strong> ${subResp.embeddingId || '(none)'}<br>` +
+      `<strong>Latency:</strong> ${kevResp.latency_ms || '?'}ms`;
+    
+    status.textContent = '✓ recorded';
+    
+    // Refresh cell list
+    refreshCells();
+  } catch (e) {
+    status.textContent = '✗ substrate error: ' + e.message;
+  }
+  
+  runBtn.disabled = false;
+}
+
+function simulateKev(question, state) {
+  // Mock probabilities so the UI still works without a real kev
+  let probs;
+  if (question.type === 'noul') {
+    probs = [Math.random() * 0.3 + 0.1, Math.random() * 0.3 + 0.6];
+  } else if (question.type === 'choice') {
+    const keys = Object.keys(question.criteria);
+    probs = keys.map(() => Math.random());
+    const sum = probs.reduce((a, b) => a + b);
+    probs = probs.map(p => p / sum);
+    return {
+      model: 'kev-simulated',
+      answers: { [question.id]: { type: 'choice', choice: keys[probs.indexOf(Math.max(...probs))], probabilities: Object.fromEntries(keys.map((k, i) => [k, Math.round(probs[i] * 100) / 100])) } },
+      latency_ms: 50,
+    };
+  } else {
+    const L = question.criteria.length;
+    probs = Array.from({length: L}, () => Math.random());
+    const sum = probs.reduce((a, b) => a + b);
+    probs = probs.map(p => p / sum);
+    return {
+      model: 'kev-simulated',
+      answers: { [question.id]: { type: 'score', score: probs.reduce((s, p, i) => s + p * i, 0), probabilities: Object.fromEntries(probs.map((p, i) => [String(i), Math.round(p * 100) / 100])) } },
+      latency_ms: 50,
+    };
+  }
+  return {
+    model: 'kev-simulated',
+    answers: { [question.id]: { type: 'noul', noul: Math.round(probs[1] * 100) / 100 } },
+    latency_ms: 50,
+  };
+}
+
+function renderAnswers(answers, container) {
+  let html = '<strong>Answers:</strong>';
+  for (const [qid, ans] of Object.entries(answers || {})) {
+    html += `<div style="margin-top: 8px;"><em>${qid}</em> (${ans.type})</div>`;
+    if (ans.type === 'choice') {
+      const probs = ans.probabilities || {};
+      const max = Math.max(...Object.values(probs));
+      for (const [k, v] of Object.entries(probs)) {
+        const pct = (v * 100).toFixed(0);
+        const width = Math.max(2, v * 100);
+        html += `<div class="answer-bar">
+          <span class="answer-label">${k}${ans.choice === k ? ' ✓' : ''}</span>
+          <span class="answer-bar-fill" style="width: ${width}%"></span>
+          <span class="answer-value">${pct}%</span>
+        </div>`;
+      }
+    } else if (ans.type === 'noul') {
+      const yes = ans.noul || 0;
+      html += `<div class="answer-bar">
+        <span class="answer-label">no</span>
+        <span class="answer-bar-fill" style="width: ${(1-yes)*100}%"></span>
+        <span class="answer-value">${((1-yes)*100).toFixed(0)}%</span>
+      </div>`;
+      html += `<div class="answer-bar">
+        <span class="answer-label">yes</span>
+        <span class="answer-bar-fill" style="width: ${yes*100}%"></span>
+        <span class="answer-value">${(yes*100).toFixed(0)}%</span>
+      </div>`;
+    } else if (ans.type === 'score') {
+      const probs = ans.probabilities || {};
+      for (const [k, v] of Object.entries(probs)) {
+        html += `<div class="answer-bar">
+          <span class="answer-label">level ${k}</span>
+          <span class="answer-bar-fill" style="width: ${v*100}%"></span>
+          <span class="answer-value">${(v*100).toFixed(0)}%</span>
+        </div>`;
+      }
+      if (ans.score !== undefined) {
+        html += `<div style="font-size: 0.85em; color: #b0b0d0; margin-top: 4px;">Expected: ${ans.score}</div>`;
+      }
+    }
+  }
+  container.innerHTML = html;
+}
+
+async function refreshCells() {
+  try {
+    const r = await fetch(`${SUBSTRATE_URL}/api/cells?limit=20`);
+    const d = await r.json();
+    const list = document.getElementById('cells-list');
+    if (!d.cells || d.cells.length === 0) {
+      list.innerHTML = '<p style="color: #888;">No cells yet — run kev above to add one.</p>';
+      return;
+    }
+    list.innerHTML = d.cells.map(c => `
+      <div class="cell-row">
+        <span class="cell-source">${c.source || '?'}</span>
+        <span class="cell-id">${c.id}</span>
+      </div>
+    `).join('');
+    document.getElementById('status-substrate').innerHTML = '<span style="color: #76ff03">live</span>';
+  } catch (e) {
+    document.getElementById('status-substrate').innerHTML = '<span style="color: #f44336">offline</span>';
+  }
+}
+
+// Type-based UI
+document.getElementById('question-type').addEventListener('change', e => {
+  const type = e.target.value;
+  const label = document.querySelector('label[for="options"], label:has(input#options)') || document.querySelectorAll('label')[2];
+  const optsLabel = document.querySelector('label input#options')?.parentElement;
+  if (type === 'noul') {
+    document.getElementById('options').style.display = 'none';
+  } else {
+    document.getElementById('options').style.display = '';
+    document.getElementById('options').value = type === 'choice' ? 'returns, shipping, billing' : 'low, medium, high';
+  }
+});
+
+// Init
+refreshCells();
+setInterval(refreshCells, 10000);
+</script>
+</body>
+</html>
