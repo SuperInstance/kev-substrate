@@ -258,7 +258,7 @@ def _cli():
     
     state_text = args.state
     if state_text.startswith("@"):
-        with open(state_text[1:]) as f:
+        with open(state_text[1:], encoding="utf-8") as f:
             state_text = f.read()
     
     client = SubstrateClient(
